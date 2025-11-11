@@ -10,7 +10,17 @@ import { useDispatch, useSelector } from "react-redux";
 import { addToCart } from "@/lib/features/cart/cartSlice";
 import MobileProductActions from "./MobileProductActions";
 
+import { useState, useEffect } from "react";
+
 const ProductDetails = ({ product }) => {
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Simulate loading for SSR/CSR hydration or data fetch
+    if (product) {
+      setLoading(false);
+    }
+  }, [product]);
   const currency = 'AED';
   const [mainImage, setMainImage] = useState(product.images?.[0]);
   const [quantity, setQuantity] = useState(1);
@@ -153,6 +163,18 @@ const ProductDetails = ({ product }) => {
       dispatch(addToCart({ productId: product.id }));
     }
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[300px] text-gray-400 text-lg">Loading product...</div>
+    );
+  }
+
+  if (!product) {
+    return (
+      <div className="flex items-center justify-center min-h-[300px] text-gray-400 text-lg">Product not found.</div>
+    );
+  }
 
   return (
     <div className="bg-gray-50 min-h-screen">
@@ -540,7 +562,18 @@ const ProductDetails = ({ product }) => {
           
           {/* Description Content */}
           {product.description && (
-            <div className="mt-6 prose prose-sm max-w-none text-gray-700" dangerouslySetInnerHTML={{ __html: product.description }} />
+            <div 
+              className="mt-6 prose prose-slate max-w-none 
+                prose-headings:text-gray-900 prose-headings:font-bold prose-headings:mb-3
+                prose-p:text-gray-700 prose-p:leading-relaxed prose-p:mb-4
+                prose-ul:text-gray-700 prose-ul:mb-4 prose-li:text-gray-700 prose-li:mb-2
+                prose-strong:text-gray-900 prose-strong:font-semibold
+                prose-img:rounded-lg prose-img:shadow-sm
+                prose-table:border-collapse prose-table:w-full prose-table:my-4
+                prose-th:text-left prose-th:p-3 prose-th:bg-gray-50 prose-th:font-semibold prose-th:border prose-th:border-gray-200
+                prose-td:p-3 prose-td:border prose-td:border-gray-200"
+              dangerouslySetInnerHTML={{ __html: product.description }}
+            />
           )}
         </div>
       </div>
