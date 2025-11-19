@@ -192,9 +192,10 @@ export default function StoreOrders() {
                                             receiverPhone: selectedOrder.address?.phone,
                                             weight: selectedOrder.weight || '',
                                             dimensions: selectedOrder.dimensions || '',
-                                            contents: selectedOrder.orderItems?.map(i => i.product?.name).join(', ')
+                                            contents: selectedOrder.orderItems?.map(i => i.product?.name).join(', '),
+                                            pdfSize: 'a5' // Pass A5 size for AWB
                                         })}
-                                        className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors backdrop-blur-sm"
+                                        className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-lg transition-colors shadow backdrop-blur-sm"
                                         title="Download AWB Bill"
                                     >
                                         <Download size={18} />
