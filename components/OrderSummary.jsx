@@ -168,10 +168,6 @@ const OrderSummary = ({ totalPrice, items }) => {
                             // For guests, redirect to first order success (or show all order IDs)
                             const orderId = data.orders ? data.orders[0].id : data.order.id;
                             router.push(`/order-success?orderId=${orderId}`);
-                            // After briefly showing the success page, navigate to the cart page
-                            setTimeout(() => {
-                                router.push('/cart');
-                            }, 8000);
                         }
                     } else {
                         router.push('/order-failed');
@@ -215,10 +211,6 @@ const OrderSummary = ({ totalPrice, items }) => {
                 router.push('/orders')
                 // Fetch updated cart from server to sync
                 dispatch(fetchCart({getToken}))
-                // After briefly showing orders, navigate to cart page
-                setTimeout(() => {
-                    router.push('/cart');
-                }, 8000);
             }
            }else{
             router.push('/order-failed');
