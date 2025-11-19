@@ -1,4 +1,3 @@
-
 "use client";
 export const dynamic = 'force-dynamic'
 import { useEffect, useState } from "react"
@@ -9,6 +8,7 @@ import axios from "axios"
 import toast from "react-hot-toast"
 import { Package, Truck, X, Download, Printer } from "lucide-react"
 import { downloadInvoice, printInvoice } from "@/lib/generateInvoice"
+import { downloadAwbBill } from "@/lib/generateAwbBill"
 
 // Add updateTrackingDetails function
 // (must be inside the component, not top-level)
@@ -177,6 +177,28 @@ export default function StoreOrders() {
                                     >
                                         <Printer size={18} />
                                         <span className="text-sm">Print</span>
+                                    </button>
+                                    <button
+                                        onClick={() => downloadAwbBill({
+                                            awbNumber: selectedOrder.trackingId,
+                                            orderId: selectedOrder.id,
+                                            courier: selectedOrder.courier,
+                                            date: selectedOrder.createdAt,
+                                            senderName: process.env.NEXT_PUBLIC_INVOICE_COMPANY_NAME || 'Qui',
+                                            senderAddress: `${process.env.NEXT_PUBLIC_INVOICE_ADDRESS_LINE1 || ''}, ${process.env.NEXT_PUBLIC_INVOICE_ADDRESS_LINE2 || ''}`,
+                                            senderPhone: process.env.NEXT_PUBLIC_INVOICE_CONTACT || '',
+                                            receiverName: selectedOrder.address?.name,
+                                            receiverAddress: `${selectedOrder.address?.street}, ${selectedOrder.address?.city}, ${selectedOrder.address?.state}, ${selectedOrder.address?.zip}, ${selectedOrder.address?.country}`,
+                                            receiverPhone: selectedOrder.address?.phone,
+                                            weight: selectedOrder.weight || '',
+                                            dimensions: selectedOrder.dimensions || '',
+                                            contents: selectedOrder.orderItems?.map(i => i.product?.name).join(', ')
+                                        })}
+                                        className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors backdrop-blur-sm"
+                                        title="Download AWB Bill"
+                                    >
+                                        <Download size={18} />
+                                        <span className="text-sm">AWB Bill</span>
                                     </button>
                                     <button onClick={closeModal} className="p-2 hover:bg-white/20 rounded-full transition-colors">
                                         <X size={24} />
