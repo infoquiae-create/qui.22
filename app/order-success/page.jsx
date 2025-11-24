@@ -76,6 +76,16 @@ function OrderSuccessContent() {
   const orderDate = order?.createdAt ? new Date(order.createdAt).toLocaleDateString() : new Date().toLocaleDateString();
   const currency = order?.currency || 'AED';
 
+  // Meta Pixel Purchase event
+  useEffect(() => {
+    if (order && typeof window !== 'undefined' && window.fbq) {
+      window.fbq('track', 'Purchase', {
+        value: total,
+        currency: currency
+      });
+    }
+  }, [order, total, currency]);
+
   return (
     <div className='min-h-screen bg-gray-50 flex flex-col items-center justify-center py-8'>
       <div className='max-w-2xl w-full bg-white rounded-xl shadow p-8'>

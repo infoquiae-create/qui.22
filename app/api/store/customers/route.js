@@ -9,7 +9,7 @@ export async function GET(request) {
         const { userId } = getAuth(request);
         const storeId = await authSeller(userId);
 
-        // Get all orders for this store with user information
+        // Get all orders for this store with user information and guest info
         const orders = await prisma.order.findMany({
             where: { storeId },
             include: {
@@ -36,14 +36,28 @@ export async function GET(request) {
         const customerMap = new Map();
 
         orders.forEach(order => {
-            const customerId = order.userId;
-            
+            // If guest order, use guest info
+            let customerId, name, email, image, isGuest = false;
+            if (order.isGuest) {
+                customerId = `guest-${order.guestEmail || order.id}`;
+                name = order.guestName || 'Guest';
+                email = order.guestEmail || 'No email';
+                image = null;
+                isGuest = true;
+            } else {
+                customerId = order.userId;
+                name = order.user?.name || 'Unknown Customer';
+                email = order.user?.email || 'No email';
+                image = order.user?.image || null;
+            }
+
             if (!customerMap.has(customerId)) {
                 customerMap.set(customerId, {
-                    id: order.user?.id || customerId,
-                    name: order.user?.name || 'Unknown Customer',
-                    email: order.user?.email || 'No email',
-                    image: order.user?.image || null,
+                    id: customerId,
+                    name,
+                    email,
+                    image,
+                    isGuest,
                     totalOrders: 0,
                     totalSpent: 0,
                     firstOrderDate: order.createdAt,
@@ -55,14 +69,14 @@ export async function GET(request) {
             const customer = customerMap.get(customerId);
             customer.totalOrders += 1;
             customer.totalSpent += order.total;
-            
+
             // Convert orderItems to items array
             const items = order.orderItems.map(item => ({
                 name: item.product?.name || 'Product',
                 price: item.price,
                 quantity: item.quantity
             }));
-            
+
             customer.orders.push({
                 id: order.id,
                 total: order.total,

@@ -87,3 +87,34 @@ export async function PUT(request, { params }) {
         return NextResponse.json({ error: error.message || 'Failed to update order' }, { status: 400 });
     }
 }
+
+// Delete order
+export async function DELETE(request, { params }) {
+    try {
+        const { userId } = getAuth(request);
+        const storeId = await authSeller(userId);
+        const orderId = params.orderId;
+
+        // Verify the order belongs to this store
+        const existingOrder = await prisma.order.findFirst({
+            where: {
+                id: orderId,
+                storeId: storeId
+            }
+        });
+
+        if (!existingOrder) {
+            return NextResponse.json({ error: 'Order not found or unauthorized' }, { status: 404 });
+        }
+
+        // Delete the order
+        await prisma.order.delete({
+            where: { id: orderId }
+        });
+
+        return NextResponse.json({ success: true, message: 'Order deleted successfully' });
+    } catch (error) {
+        console.error(error);
+        return NextResponse.json({ error: error.message || 'Failed to delete order' }, { status: 400 });
+    }
+}

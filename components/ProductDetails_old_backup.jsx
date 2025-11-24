@@ -519,7 +519,7 @@ const ProductDetails = ({ product }) => {
           </div>
           <div className="flex items-center gap-2 bg-purple-50 p-3 rounded-lg">
             <PackageIcon className="text-purple-600" size={20} />
-            <span className="text-sm text-gray-700">Fast Shipping</span>
+            <span className="text-sm text-gray-700">Free Shipping</span>
           </div>
           <div className="flex items-center gap-2 bg-orange-50 p-3 rounded-lg">
             <RotateCcwIcon className="text-orange-600" size={20} />

@@ -1,13 +1,14 @@
 'use client'
 
 import { useDispatch, useSelector } from 'react-redux'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import axios from 'axios'
 import Image from 'next/image'
 import Link from 'next/link'
 import { FaStar } from 'react-icons/fa'
 import { ShoppingCartIcon } from 'lucide-react'
 import { addToCart, uploadCart } from '@/lib/features/cart/cartSlice'
+import { fetchProducts } from '@/lib/features/product/productSlice'
 import { useAuth } from '@clerk/nextjs'
 import toast from 'react-hot-toast'
 import Title from './Title'
@@ -182,6 +183,13 @@ const BestSelling = () => {
   const displayQuantity = 10
   const products = useSelector((state) => state.product.list || [])
   const [curated, setCurated] = useState([])
+  const dispatch = useDispatch()
+
+  useEffect(() => {
+    if (products.length === 0) {
+      dispatch(fetchProducts({ limit: displayQuantity }))
+    }
+  }, [products.length, dispatch])
 
   // useEffect(() => {
   //   const load = async () => {
@@ -194,11 +202,12 @@ const BestSelling = () => {
   //   load()
   // }, [])
 
-  const baseSorted = products
-    .slice()
-    .sort((a, b) => (b.rating?.length || b.ratingCount || 0) - (a.rating?.length || a.ratingCount || 0))
-    .slice(0, displayQuantity)
-
+  const baseSorted = useMemo(() =>
+    products
+      .slice()
+      .sort((a, b) => (b.rating?.length || b.ratingCount || 0) - (a.rating?.length || a.ratingCount || 0))
+      .slice(0, displayQuantity)
+  , [products, displayQuantity])
 
   const shown = (curated.length ? curated : baseSorted).slice(0, displayQuantity)
   const isLoading = products.length === 0;

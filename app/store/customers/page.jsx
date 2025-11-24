@@ -203,10 +203,12 @@ export default function CustomersPage() {
                                     <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-400 rounded-full border-4 border-white"></div>
                                 </div>
                                 <div>
-                                    <h2 className="text-2xl font-bold mb-1">{selectedCustomer.name}</h2>
+                                    <h2 className="text-2xl font-bold mb-1">
+                                        {selectedCustomer.isGuest ? 'Guest Checkout' : selectedCustomer.name}
+                                    </h2>
                                     <p className="text-blue-100 flex items-center gap-2">
                                         <Mail size={16} />
-                                        {selectedCustomer.email}
+                                        {selectedCustomer.isGuest ? 'No email (Guest)' : selectedCustomer.email}
                                     </p>
                                 </div>
                             </div>

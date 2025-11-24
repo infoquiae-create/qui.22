@@ -387,6 +387,31 @@ export default function StoreOrders() {
                                     </div>
                                 </div>
                             </div>
+
+                            {/* Actions */}
+                            <div className="flex justify-end gap-3">
+                                <button
+                                    onClick={async () => {
+                                        if (!window.confirm('Are you sure you want to delete this order? This action cannot be undone.')) return;
+                                        try {
+                                            const token = await getToken();
+                                            await axios.delete(`/api/store/orders/${selectedOrder.id}`, {
+                                                headers: { Authorization: `Bearer ${token}` }
+                                            });
+                                            toast.success('Order deleted successfully');
+                                            setIsModalOpen(false);
+                                            fetchOrders();
+                                        } catch (error) {
+                                            toast.error(error?.response?.data?.error || 'Failed to delete order');
+                                        }
+                                    }}
+                                    className="flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-lg transition-colors shadow backdrop-blur-sm"
+                                    title="Delete Order"
+                                >
+                                    <X size={18} />
+                                    <span className="text-sm">Delete</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>

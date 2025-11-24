@@ -21,9 +21,9 @@ export default function TopSellingPage() {
 
     return (
         <div className="max-w-7xl mx-auto px-4 py-8">
-            <PageTitle title="Top Selling Items" />
+            {/* <PageTitle title="Top Selling Items" /> */}
             
-            <div className="mb-6">
+            <div className="mb-6 mt-6">
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">Top Selling Products</h1>
                 <p className="text-gray-600">Discover our most popular products loved by customers</p>
             </div>

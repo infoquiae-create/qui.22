@@ -6,8 +6,8 @@ Your invoice now includes:
 
 ### 1. **Header Section (Blue Background)**
 - Company Name: "Qui" (You can change this)
-- Company Address: 123, Business Street, City - 400001
-- Contact: Qui.com@gmail.com | +91 1234567890
+- Company Address: Dubai, UAE
+- Contact: info@qui.ae
 - Invoice Number: Auto-generated from Order ID
 
 ### 2. **Bill To Section (Blue Header)**
@@ -64,9 +64,9 @@ Your invoice now includes:
 In `lib/generateInvoice.js`, find these lines (around line 18-20):
 
 ```javascript
-doc.text('Your Company Name', 14, 28);
-doc.text('123, Business Street, City - 400001', 14, 33);
-doc.text('Email: Qui.com@gmail.com | Phone: +91 1234567890', 14, 38);
+doc.text('Qui', 14, 28);
+doc.text('Dubai, UAE', 14, 33);
+doc.text('Email: info@qui.ae', 14, 38);
 ```
 
 Replace with your actual company information.
