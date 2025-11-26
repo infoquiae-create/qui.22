@@ -11,6 +11,8 @@ import { addToCart, uploadCart } from "@/lib/features/cart/cartSlice";
 import MobileProductActions from "./MobileProductActions";
 
 const ProductDetails = ({ product }) => {
+  // Assume product loading state from redux if available
+  const loading = useSelector(state => state.product?.status === 'loading');
   const currency = 'AED';
   const [mainImage, setMainImage] = useState(product.images?.[0]);
   const [quantity, setQuantity] = useState(1);
@@ -210,6 +212,16 @@ const ProductDetails = ({ product }) => {
     setTimeout(() => setShowCartToast(false), 3000);
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-[400px] flex items-center justify-center text-gray-500 text-lg">Loading product…</div>
+    );
+  }
+  if (!product) {
+    return (
+      <div className="min-h-[400px] flex items-center justify-center text-gray-400 text-lg">Product not found.</div>
+    );
+  }
   return (
     <div className="bg-gray-50">
       {/* Breadcrumb */}

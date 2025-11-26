@@ -10,10 +10,12 @@ import axios from "axios";
 export default function ProductBySlug() {
     const { slug } = useParams();
     const [product, setProduct] = useState();
+    const [loading, setLoading] = useState(true);
     const [relatedProducts, setRelatedProducts] = useState([]);
     const products = useSelector(state => state.product.list);
 
     const fetchProduct = async () => {
+        setLoading(true);
         let found = products.find((product) => product.slug === slug);
         if (!found) {
             // Fetch from backend if not in Redux
@@ -34,6 +36,7 @@ export default function ProductBySlug() {
         } else {
             setRelatedProducts([]);
         }
+        setLoading(false);
     }
 
     useEffect(() => {
@@ -45,7 +48,9 @@ export default function ProductBySlug() {
         <div className="lg:mx-6">
             <div className="max-w-7xl mx-auto pb-24 lg:pb-0">
                 {/* Product Details */}
-                {product ? (
+                {loading ? (
+                    <div className="text-center py-16 text-gray-400">Loading product…</div>
+                ) : product ? (
                     <>
                         <ProductDetails product={product} />
                         <ProductDescription product={product} />
