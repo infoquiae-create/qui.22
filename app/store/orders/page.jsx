@@ -7,7 +7,7 @@ import { useAuth } from "@clerk/nextjs"
 import axios from "axios"
 import toast from "react-hot-toast"
 import { Package, Truck, X, Download, Printer } from "lucide-react"
-import { downloadInvoice, printInvoice } from "@/lib/generateInvoice"
+import { downloadInvoiceHTML, printInvoiceHTML } from "@/lib/generateInvoiceHTML"
 import { downloadAwbBill } from "@/lib/generateAwbBill"
 
 // Add updateTrackingDetails function
@@ -221,7 +221,7 @@ export default function StoreOrders() {
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <button
-                                        onClick={() => downloadInvoice(selectedOrder)}
+                                        onClick={() => downloadInvoiceHTML(selectedOrder)}
                                         className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors backdrop-blur-sm"
                                         title="Download Invoice"
                                     >
@@ -229,7 +229,7 @@ export default function StoreOrders() {
                                         <span className="text-sm">Download</span>
                                     </button>
                                     <button
-                                        onClick={() => printInvoice(selectedOrder)}
+                                        onClick={() => printInvoiceHTML(selectedOrder)}
                                         className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors backdrop-blur-sm"
                                         title="Print Invoice"
                                     >
