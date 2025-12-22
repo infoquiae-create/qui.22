@@ -79,6 +79,8 @@ enum OrderStatus {
     PROCESSING
     SHIPPED
     DELIVERED
+    CANCELLED
+    RETURNED
 }
 
 enum PaymentMethod {

@@ -20,6 +20,7 @@ export default function StoreOrders() {
     const currency = process.env.NEXT_PUBLIC_CURRENCY_SYMBOL || 'AED';
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [statusFilter, setStatusFilter] = useState('ALL');
     const [selectedOrder, setSelectedOrder] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [trackingData, setTrackingData] = useState({
@@ -74,6 +75,39 @@ export default function StoreOrders() {
         }
     };
 
+    const updateOrderStatus = async (orderId, status) => {
+        try {
+            const token = await getToken();
+            await axios.post('/api/store/orders', { orderId, status }, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setOrders(prev => prev.map(order => order.id === orderId ? { ...order, status } : order));
+            toast.success(`Status updated to ${status.replace(/_/g, ' ')}`);
+        } catch (error) {
+            toast.error(error?.response?.data?.error || error.message);
+        }
+    };
+
+    const statusFilters = [
+        { key: 'ALL', label: 'All' },
+        { key: 'ORDER_PLACED', label: 'Order Placed' },
+        { key: 'PROCESSING', label: 'Processing' },
+        { key: 'SHIPPED', label: 'Shipped' },
+        { key: 'DELIVERED', label: 'Delivered' },
+        { key: 'CANCELLED', label: 'Cancelled' },
+        { key: 'RETURNED', label: 'Returned' },
+    ];
+
+    const statusCounts = orders.reduce((acc, order) => {
+        acc.ALL = (acc.ALL || 0) + 1;
+        acc[order.status] = (acc[order.status] || 0) + 1;
+        return acc;
+    }, {});
+
+    const filteredOrders = statusFilter === 'ALL'
+        ? orders
+        : orders.filter(order => order.status === statusFilter);
+
     useEffect(() => {
         fetchOrders();
     }, []);
@@ -86,68 +120,92 @@ export default function StoreOrders() {
             {orders.length === 0 ? (
                 <p>No orders found</p>
             ) : (
-                <div className="overflow-x-auto max-w-4xl rounded-md shadow border border-gray-200">
-                    <table className="w-full text-sm text-left text-gray-600">
-                        <thead className="bg-gray-50 text-gray-700 text-xs uppercase tracking-wider">
-                            <tr>
-                                {[
-                                    "Sr. No.", "Customer", "Total", "Payment", "Coupon", "Status", "Date"
-                                ].map((heading, i) => (
-                                    <th key={i} className="px-4 py-3">{heading}</th>
-                                ))}
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-100">
-                            {orders.map((order, index) => (
-                                <tr
-                                    key={order.id}
-                                    className="hover:bg-gray-50 transition-colors duration-150 cursor-pointer"
-                                    onClick={() => openModal(order)}
+                <>
+                    <div className="flex flex-wrap gap-2 mb-4">
+                        {statusFilters.map(filter => {
+                            const isActive = statusFilter === filter.key;
+                            return (
+                                <button
+                                    key={filter.key}
+                                    onClick={() => setStatusFilter(filter.key)}
+                                    className={`${isActive ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-700'} px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-2 transition`}
                                 >
-                                    <td className="pl-6 text-green-600" >
-                                        {index + 1}
-                                    </td>
-                                    <td className="px-4 py-3">
-                                        <div className="flex flex-col gap-1">
-                                            <span>{order.isGuest ? order.guestName : order.user?.name}</span>
-                                            {order.isGuest && (
-                                                <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full w-fit font-semibold">
-                                                    Guest
-                                                </span>
-                                            )}
-                                        </div>
-                                    </td>
-                                    <td className="px-4 py-3 font-medium text-slate-800">{currency}{order.total}</td>
-                                    <td className="px-4 py-3">{order.paymentMethod}</td>
-                                    <td className="px-4 py-3">
-                                        {order.isCouponUsed ? (
-                                            <span className="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full">
-                                                {order.coupon?.code}
-                                            </span>
-                                        ) : (
-                                            "—"
-                                        )}
-                                    </td>
-                                    <td className="px-4 py-3" onClick={(e) => { e.stopPropagation() }}>
-                                        <select
-                                            value={order.status}
-                                            onChange={e => updateOrderStatus(order.id, e.target.value)}
-                                            className="border-gray-300 rounded-md text-sm focus:ring focus:ring-blue-200"
+                                    <span>{filter.label}</span>
+                                    <span className={`${isActive ? 'bg-white/20 text-white' : 'bg-white text-slate-700'} px-2 py-0.5 rounded-full border border-slate-200`}>{statusCounts[filter.key] || 0}</span>
+                                </button>
+                            )
+                        })}
+                    </div>
+
+                    {filteredOrders.length === 0 ? (
+                        <p className="text-sm text-gray-500">No orders in this status.</p>
+                    ) : (
+                        <div className="overflow-x-auto max-w-4xl rounded-md shadow border border-gray-200">
+                            <table className="w-full text-sm text-left text-gray-600">
+                                <thead className="bg-gray-50 text-gray-700 text-xs uppercase tracking-wider">
+                                    <tr>
+                                        {[
+                                            "Sr. No.", "Customer", "Total", "Payment", "Coupon", "Status", "Date"
+                                        ].map((heading, i) => (
+                                            <th key={i} className="px-4 py-3">{heading}</th>
+                                        ))}
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-100">
+                                    {filteredOrders.map((order, index) => (
+                                        <tr
+                                            key={order.id}
+                                            className="hover:bg-gray-50 transition-colors duration-150 cursor-pointer"
+                                            onClick={() => openModal(order)}
                                         >
-                                            <option value="ORDER_PLACED">ORDER_PLACED</option>
-                                            <option value="PROCESSING">PROCESSING</option>
-                                            <option value="SHIPPED">SHIPPED</option>
-                                            <option value="DELIVERED">DELIVERED</option>
-                                        </select>
-                                    </td>
-                                    <td className="px-4 py-3 text-gray-500">
-                                        {new Date(order.createdAt).toLocaleString()}
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+                                            <td className="pl-6 text-green-600" >
+                                                {index + 1}
+                                            </td>
+                                            <td className="px-4 py-3">
+                                                <div className="flex flex-col gap-1">
+                                                    <span>{order.isGuest ? order.guestName : order.user?.name}</span>
+                                                    {order.isGuest && (
+                                                        <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full w-fit font-semibold">
+                                                            Guest
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </td>
+                                            <td className="px-4 py-3 font-medium text-slate-800">{currency}{order.total}</td>
+                                            <td className="px-4 py-3">{order.paymentMethod}</td>
+                                            <td className="px-4 py-3">
+                                                {order.isCouponUsed ? (
+                                                    <span className="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full">
+                                                        {order.coupon?.code}
+                                                    </span>
+                                                ) : (
+                                                    "—"
+                                                )}
+                                            </td>
+                                            <td className="px-4 py-3" onClick={(e) => { e.stopPropagation() }}>
+                                                <select
+                                                    value={order.status}
+                                                    onChange={e => updateOrderStatus(order.id, e.target.value)}
+                                                    className="border-gray-300 rounded-md text-sm focus:ring focus:ring-blue-200"
+                                                >
+                                                    <option value="ORDER_PLACED">ORDER_PLACED</option>
+                                                    <option value="PROCESSING">PROCESSING</option>
+                                                    <option value="SHIPPED">SHIPPED</option>
+                                                    <option value="DELIVERED">DELIVERED</option>
+                                                    <option value="CANCELLED">CANCELLED</option>
+                                                    <option value="RETURNED">RETURNED</option>
+                                                </select>
+                                            </td>
+                                            <td className="px-4 py-3 text-gray-500">
+                                                {new Date(order.createdAt).toLocaleString()}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </>
             )}
 
             {/* Modal */}
