@@ -203,10 +203,30 @@ export default function StoreOrders() {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100">
-                                    {filteredOrders.map((order, index) => (
+                                    {filteredOrders.map((order, index) => {
+                                        const getRowColorClass = (status) => {
+                                            switch(status) {
+                                                case 'CANCELLED':
+                                                    return 'bg-red-50 hover:bg-red-100';
+                                                case 'RETURNED':
+                                                    return 'bg-orange-50 hover:bg-orange-100';
+                                                case 'PROCESSING':
+                                                    return 'bg-blue-50 hover:bg-blue-100';
+                                                case 'SHIPPED':
+                                                    return 'bg-purple-50 hover:bg-purple-100';
+                                                case 'DELIVERED':
+                                                    return 'bg-green-50 hover:bg-green-100';
+                                                case 'ORDER_PLACED':
+                                                    return 'bg-yellow-50 hover:bg-yellow-100';
+                                                default:
+                                                    return 'hover:bg-gray-50';
+                                            }
+                                        };
+                                        
+                                        return (
                                         <tr
                                             key={order.id}
-                                            className="hover:bg-gray-50 transition-colors duration-150 cursor-pointer"
+                                            className={`${getRowColorClass(order.status)} transition-colors duration-150 cursor-pointer`}
                                             onClick={() => openModal(order)}
                                         >
                                             <td className="pl-6 text-green-600" >
@@ -251,7 +271,8 @@ export default function StoreOrders() {
                                                 {new Date(order.createdAt).toLocaleString()}
                                             </td>
                                         </tr>
-                                    ))}
+                                        );
+                                    })}
                                 </tbody>
                             </table>
                         </div>
