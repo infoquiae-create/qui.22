@@ -50,6 +50,21 @@ export default function Dashboard() {
         setLoading(false)
     }
 
+    const handleDeleteReview = async (reviewId) => {
+        if (!confirm('Are you sure you want to delete this review?')) return
+
+        try {
+            const token = await getToken()
+            await axios.delete(`/api/store/reviews?reviewId=${reviewId}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            })
+            toast.success('Review deleted successfully')
+            fetchDashboardData()
+        } catch (error) {
+            toast.error(error?.response?.data?.error || error.message)
+        }
+    }
+
     useEffect(() => {
         fetchDashboardData()
     }, [])
@@ -106,7 +121,10 @@ export default function Dashboard() {
                                         ))}
                                     </div>
                                 </div>
-                                <button onClick={() => router.push(`/product/${review.product.id}`)} className="bg-slate-100 px-5 py-2 hover:bg-slate-200 rounded transition-all">View Product</button>
+                                <div className="flex items-center gap-2">
+                                    <button onClick={() => router.push(`/product/${review.product.id}`)} className="bg-slate-100 px-5 py-2 hover:bg-slate-200 rounded transition-all">View Product</button>
+                                    <button onClick={() => handleDeleteReview(review.id)} className="bg-red-600 text-white px-5 py-2 hover:bg-red-700 rounded transition-all">Delete</button>
+                                </div>
                             </div>
                         </div>
                     ))

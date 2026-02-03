@@ -83,6 +83,21 @@ export default function StoreReviews() {
         }
     }
 
+    const handleDeleteReview = async (reviewId) => {
+        if (!confirm('Are you sure you want to delete this review?')) return
+
+        try {
+            const token = await getToken()
+            await axios.delete(`/api/store/reviews?reviewId=${reviewId}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            })
+            toast.success('Review deleted successfully')
+            fetchReviews()
+        } catch (error) {
+            toast.error(error?.response?.data?.error || error.message)
+        }
+    }
+
     useEffect(() => {
         if (user) {
             fetchReviews()
@@ -173,6 +188,12 @@ export default function StoreReviews() {
                                                 <p className="text-xs text-slate-400">
                                                     {new Date(rev.createdAt).toLocaleDateString()}
                                                 </p>
+                                                <button
+                                                    onClick={() => handleDeleteReview(rev.id)}
+                                                    className="text-xs px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition"
+                                                >
+                                                    Delete
+                                                </button>
                                                 {!rev.approved && (
                                                     <>
                                                         <button
