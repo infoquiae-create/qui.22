@@ -21,15 +21,29 @@ export async function POST(request){
 
         const {orderId, status } = await request.json()
 
-        await prisma.order.update({
-            where: { id: orderId, storeId },
-            data: {status}
+        if (!orderId || !status) {
+            return NextResponse.json({ error: 'orderId and status are required' }, { status: 400 })
+        }
+
+        // Verify order exists and belongs to this store
+        const existingOrder = await prisma.order.findFirst({
+            where: { id: orderId, storeId }
         })
 
-        return NextResponse.json({message: "Order Status updated"})
+        if (!existingOrder) {
+            return NextResponse.json({ error: 'Order not found or unauthorized' }, { status: 404 })
+        }
+
+        const updatedOrder = await prisma.order.update({
+            where: { id: orderId },
+            data: { status },
+            include: { orderItems: { include: { product: true } } }
+        })
+
+        return NextResponse.json({ message: "Order Status updated", order: updatedOrder })
     } catch (error) {
         console.error(error);
-        return NextResponse.json({ error: error.code || error.message }, { status: 400 })
+        return NextResponse.json({ error: error.message || 'Failed to update order status' }, { status: 400 })
     }
 }
 

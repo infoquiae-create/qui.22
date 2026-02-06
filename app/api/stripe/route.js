@@ -22,34 +22,77 @@ export async function POST(request){
                 payment_intent: paymentIntentId
             })
 
+            if (!session.data || !session.data[0]) {
+                console.error('No session found for payment intent:', paymentIntentId)
+                return
+            }
+
             const {orderIds, userId, appId} = session.data[0].metadata
             
             if(appId !== 'Qui'){
-                return NextResponse.json({received: true, message: 'Invalid app id'})
+                console.log('Invalid app id:', appId)
+                return
+            }
+
+            if (!orderIds || !userId) {
+                console.error('Missing orderIds or userId in metadata')
+                return
             }
 
             const orderIdsArray = orderIds.split(',')
 
             if(isPaid){
+                // Verify orders exist before updating
+                const existingOrders = await prisma.order.findMany({
+                    where: { id: { in: orderIdsArray } }
+                })
+
+                if (existingOrders.length !== orderIdsArray.length) {
+                    console.error('Some orders not found:', { requested: orderIdsArray, found: existingOrders.map(o => o.id) })
+                }
+
                 // mark order as paid
                 await Promise.all(orderIdsArray.map(async (orderId) => {
-                    await prisma.order.update({
-                        where: {id: orderId},
-                        data: {isPaid: true}
-                    })
+                    try {
+                        await prisma.order.update({
+                            where: { id: orderId },
+                            data: { isPaid: true }
+                        })
+                    } catch (error) {
+                        console.error('Error updating order:', orderId, error.message)
+                    }
                 }))
+                
                 // delete cart from user
-                await prisma.user.update({
-                    where: {id: userId},
-                    data: {cart : {}}
-                })
-            }else{
-                 // delete order from db
-                 await Promise.all(orderIdsArray.map(async (orderId) => {
-                    await prisma.order.delete({
-                        where: {id: orderId}
+                try {
+                    await prisma.user.update({
+                        where: { id: userId },
+                        data: { cart: {} }
                     })
-                 }))
+                } catch (error) {
+                    console.error('Error clearing user cart:', userId, error.message)
+                }
+            }else{
+                // Verify orders exist before deleting
+                const existingOrders = await prisma.order.findMany({
+                    where: { id: { in: orderIdsArray } }
+                })
+
+                if (existingOrders.length === 0) {
+                    console.log('No orders to delete')
+                    return
+                }
+
+                // delete order from db
+                await Promise.all(orderIdsArray.map(async (orderId) => {
+                    try {
+                        await prisma.order.delete({
+                            where: { id: orderId }
+                        })
+                    } catch (error) {
+                        console.error('Error deleting order:', orderId, error.message)
+                    }
+                }))
             }
         }
 
