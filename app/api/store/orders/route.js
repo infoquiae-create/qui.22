@@ -72,6 +72,12 @@ export async function GET(request){
     } catch (error) {
         console.error('[ORDER API ERROR]', error);
         debugLog('API error:', error);
-        return NextResponse.json({ error: error.code || error.message }, { status: 400 })
+        
+        let errorMessage = error.message;
+        if (error.code === 'P2022') {
+            errorMessage = 'Invalid query parameters';
+        }
+        
+        return NextResponse.json({ error: errorMessage }, { status: 400 })
     }
 }

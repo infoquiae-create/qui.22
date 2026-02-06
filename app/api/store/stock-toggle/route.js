@@ -35,7 +35,15 @@ export async function POST(request){
 
         return NextResponse.json({message: "Product stock updated successfully"})
     } catch (error) {
-        console.error(error);
-        return NextResponse.json({ error: error.code || error.message }, { status: 400 })
+        console.error('Stock toggle error:', error);
+        
+        let errorMessage = error.message;
+        if (error.code === 'P2025') {
+            errorMessage = 'Product not found';
+        } else if (error.code === 'P2022') {
+            errorMessage = 'Invalid product data';
+        }
+        
+        return NextResponse.json({ error: errorMessage }, { status: 400 })
     }
 }

@@ -34,7 +34,15 @@ export async function POST(request){
       
     } catch (error) {
         console.error(error);
-        return NextResponse.json({error: error.code || error.message}, { status: 400 })
+        
+        let errorMessage = error.message;
+        if (error.code === 'P2022') {
+            errorMessage = 'Invalid field value. Check if product and order exist';
+        } else if (error.code === 'P2025') {
+            errorMessage = 'Product or order not found';
+        }
+        
+        return NextResponse.json({error: errorMessage}, { status: 400 })
     }
 }
 
@@ -56,6 +64,12 @@ export async function GET(request){
         return NextResponse.json({ratings})
     } catch (error) {
         console.error(error);
-        return NextResponse.json({error: error.code || error.message}, { status: 400 })
+        
+        let errorMessage = error.message;
+        if (error.code === 'P2022') {
+            errorMessage = 'Invalid query parameters';
+        }
+        
+        return NextResponse.json({error: errorMessage}, { status: 400 })
     }
 }

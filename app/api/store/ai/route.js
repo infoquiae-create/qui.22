@@ -3,14 +3,9 @@ import authSeller from "@/middlewares/authSeller";
 import { getAuth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
-// Configure body size limit for large image data
-export const config = {
-    api: {
-        bodyParser: {
-            sizeLimit: '50mb',
-        },
-    },
-}
+// Route segment config for large uploads
+export const dynamic = 'force-dynamic'
+export const maxDuration = 60
 
 async function main(base64Image, mimeType) {
     const messages = [

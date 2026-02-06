@@ -32,8 +32,16 @@ export async function POST(request){
         return NextResponse.json({message: "Coupon added successfully"})
 
     } catch (error) {
-        console.error(error)
-        return NextResponse.json({ error: error.code || error.message }, { status: 400 })
+        console.error(error);
+        
+        let errorMessage = error.message;
+        if (error.code === 'P2022') {
+            errorMessage = 'Invalid coupon data';
+        } else if (error.code === 'P2002') {
+            errorMessage = 'Coupon code already exists';
+        }
+        
+        return NextResponse.json({ error: errorMessage }, { status: 400 })
     }
 }
 
@@ -53,8 +61,14 @@ export async function DELETE(request){
         await prisma.coupon.delete({where: { code }})
         return NextResponse.json({ message: 'Coupon deleted successfully' })
     } catch (error) {
-        console.error(error)
-        return NextResponse.json({ error: error.code || error.message }, { status: 400 })
+        console.error(error);
+        
+        let errorMessage = error.message;
+        if (error.code === 'P2025') {
+            errorMessage = 'Coupon not found';
+        }
+        
+        return NextResponse.json({ error: errorMessage }, { status: 400 })
     }
 }
 
@@ -70,7 +84,7 @@ export async function GET(request){
         const coupons = await prisma.coupon.findMany({})
         return NextResponse.json({ coupons })
     } catch (error) {
-        console.error(error)
-        return NextResponse.json({ error: error.code || error.message }, { status: 400 })
+        console.error(error);
+        return NextResponse.json({ error: 'Failed to fetch coupons' }, { status: 400 })
     }
 }

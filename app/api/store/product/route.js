@@ -4,14 +4,9 @@ import authSeller from "@/middlewares/authSeller"
 import { getAuth } from "@clerk/nextjs/server"
 import { NextResponse } from "next/server"
 
-// Configure body size limit for large image uploads
-export const config = {
-    api: {
-        bodyParser: {
-            sizeLimit: '50mb',
-        },
-    },
-}
+// Route segment config for large uploads
+export const dynamic = 'force-dynamic'
+export const maxDuration = 60
 
 // Helper: Upload images to ImageKit
 const uploadImages = async (images) => {
@@ -271,8 +266,18 @@ export async function PUT(request) {
 
         return NextResponse.json({ message: "Product updated successfully", product })
     } catch (error) {
-        console.error(error)
-        return NextResponse.json({ error: error.code || error.message }, { status: 400 })
+        console.error('Product update error:', error);
+        
+        let errorMessage = error.message;
+        if (error.code === 'P2022') {
+            errorMessage = 'Invalid field value or constraint violation';
+        } else if (error.code === 'P2025') {
+            errorMessage = 'Product record not found';
+        } else if (error.code === 'P2002') {
+            errorMessage = 'This slug already exists';
+        }
+        
+        return NextResponse.json({ error: errorMessage }, { status: 400 })
     }
 }
 
@@ -293,7 +298,13 @@ export async function DELETE(request) {
         await prisma.product.delete({ where: { id: productId } })
         return NextResponse.json({ message: "Product deleted successfully" })
     } catch (error) {
-        console.error(error)
-        return NextResponse.json({ error: error.code || error.message }, { status: 400 })
+        console.error(error);
+        
+        let errorMessage = error.message;
+        if (error.code === 'P2025') {
+            errorMessage = 'Product not found';
+        }
+        
+        return NextResponse.json({ error: errorMessage }, { status: 400 })
     }
 }

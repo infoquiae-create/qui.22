@@ -106,7 +106,14 @@ export async function POST(request){
 
         return NextResponse.json({coupon})
     } catch (error) {
-        console.error(error);
-        return NextResponse.json({ error: error.code || error.message }, { status: 400 })
+        console.error('Coupon error:', error);
+        
+        let errorMessage = error.message;
+        if (error.code === 'P2022') {
+            errorMessage = 'Invalid coupon data';
+        } else if (error.code === 'P2002') {
+            errorMessage = 'Coupon code already exists';
+        }
+        
+        return NextResponse.json({ error: errorMessage }, { status: 400 })
     }
-}

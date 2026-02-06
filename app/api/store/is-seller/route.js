@@ -18,7 +18,12 @@ export async function GET(request) {
 
         return NextResponse.json({isSeller, storeInfo})
     } catch (error) {
-        console.error(error);
-        return NextResponse.json({ error: error.code || error.message }, { status: 400 })
+        console.error('Is-seller check error:', error);
+        
+        let errorMessage = error.message;
+        if (error.code === 'P2022') {
+            errorMessage = 'Invalid user data';\n        }
+        
+        return NextResponse.json({ error: errorMessage }, { status: 400 })
     }
 }
