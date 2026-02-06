@@ -1,7 +1,7 @@
 import prisma from "@/lib/prisma";
 import { getAuth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
-
+import { syncClerkUserWithPrisma } from "@/lib/syncUserWithClerk";
 
 // Update user cart 
 export async function POST(request){
@@ -11,17 +11,13 @@ export async function POST(request){
 
         const { cart } = await request.json()
 
-        // Ensure user exists (minimal) then update cart
-        await prisma.user.upsert({
+        // Sync user data from Clerk first
+        await syncClerkUserWithPrisma(userId);
+
+        // Update cart
+        await prisma.user.update({
             where: { id: userId },
-            update: { cart: cart },
-            create: {
-                id: userId,
-                name: 'Unknown',
-                email: '',
-                image: '',
-                cart: cart,
-            }
+            data: { cart: cart }
         })
 
         return NextResponse.json({ message: 'Cart updated' })
@@ -39,22 +35,12 @@ export async function GET(request){
         // If not signed in, return empty cart (client can handle anonymous carts separately)
         if (!userId) return NextResponse.json({ cart: {} })
 
-        let user = await prisma.user.findUnique({ where: { id: userId } })
+        // Sync user data from Clerk first
+        await syncClerkUserWithPrisma(userId);
 
-        // If user doesn't exist yet, create a minimal record so reads don't fail
-        if (!user) {
-            user = await prisma.user.create({
-                data: {
-                    id: userId,
-                    name: 'Unknown',
-                    email: '',
-                    image: '',
-                    cart: {},
-                }
-            })
-        }
+        const user = await prisma.user.findUnique({ where: { id: userId } })
 
-        return NextResponse.json({ cart: user.cart || {} })
+        return NextResponse.json({ cart: user?.cart || {} })
     } catch (error) {
         console.error(error);
         return NextResponse.json({ error: error.message }, { status: 400 })

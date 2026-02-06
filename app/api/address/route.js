@@ -1,12 +1,16 @@
 import prisma from "@/lib/prisma";
 import { getAuth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
+import { syncClerkUserWithPrisma } from "@/lib/syncUserWithClerk";
 
 // Add new address
 export async function POST(request){
     try {
         const { userId } = getAuth(request)
         const { address } = await request.json()
+
+        // Sync user data from Clerk first
+        await syncClerkUserWithPrisma(userId);
 
         address.userId = userId
 
@@ -25,6 +29,9 @@ export async function POST(request){
 export async function GET(request){
     try {
         const { userId } = getAuth(request)
+
+        // Sync user data from Clerk first
+        await syncClerkUserWithPrisma(userId);
 
         const addresses = await prisma.address.findMany({
             where: { userId }

@@ -4,6 +4,15 @@ import authSeller from "@/middlewares/authSeller"
 import { getAuth } from "@clerk/nextjs/server"
 import { NextResponse } from "next/server"
 
+// Configure body size limit for large image uploads
+export const config = {
+    api: {
+        bodyParser: {
+            sizeLimit: '50mb',
+        },
+    },
+}
+
 // Helper: Upload images to ImageKit
 const uploadImages = async (images) => {
     return Promise.all(

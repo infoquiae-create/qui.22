@@ -1,6 +1,7 @@
 import prisma from "@/lib/prisma";
 import { getAuth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
+import { syncClerkUserWithPrisma } from "@/lib/syncUserWithClerk";
 
 
 // Add new rating
@@ -8,6 +9,10 @@ export async function POST(request){
     try {
         const { userId } = getAuth(request)
         const {orderId, productId, rating, review} = await request.json()
+
+        // Sync user data from Clerk
+        await syncClerkUserWithPrisma(userId);
+
         const order = await prisma.order.findUnique({where: {id: orderId, userId}})
 
         if(!order){
@@ -40,6 +45,10 @@ export async function GET(request){
         if(!userId){
             return NextResponse.json({error: "Unauthorized"}, { status: 401 })
         }
+
+        // Sync user data from Clerk
+        await syncClerkUserWithPrisma(userId);
+
         const ratings = await prisma.rating.findMany({
             where: {userId}
         })

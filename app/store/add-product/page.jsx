@@ -204,7 +204,10 @@ export default function ProductForm({ product = null, onClose, onSubmitSuccess }
                                 }
                                 return "AI could not analyze the image"
                             },
-                            error: (err) => err?.response?.data?.error || err.message
+                            error: (err) => {
+                                const errorMsg = err?.response?.data?.error
+                                return typeof errorMsg === 'string' ? errorMsg : JSON.stringify(errorMsg) || err.message
+                            }
                         }
                     )
                 } catch (error) { console.error(error) }
@@ -323,7 +326,9 @@ export default function ProductForm({ product = null, onClose, onSubmitSuccess }
                 router.push('/store')
             }
         } catch (error) {
-            toast.error(error?.response?.data?.error || error.message)
+            const errorMsg = error?.response?.data?.error
+            const displayError = typeof errorMsg === 'string' ? errorMsg : JSON.stringify(errorMsg) || error.message
+            toast.error(displayError)
         } finally {
             setLoading(false)
         }

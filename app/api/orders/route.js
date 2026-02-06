@@ -4,12 +4,18 @@ import { PaymentMethod } from "@prisma/client";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import crypto from 'crypto';
-
+import { syncClerkUserWithPrisma } from "@/lib/syncUserWithClerk";
+import { sendOrderEmails } from "@/lib/sendOrderEmails";
 
 export async function POST(request){
     try {
         const { userId, has } = getAuth(request)
         const { addressId, items, couponCode, paymentMethod, isGuest, guestInfo } = await request.json()
+
+        // Sync Clerk user data with Prisma for logged-in users
+        if (userId && !isGuest) {
+            await syncClerkUserWithPrisma(userId);
+        }
 
         // Guest checkout validation
         if (isGuest) {
@@ -246,54 +252,15 @@ export async function POST(request){
             })
             orderIds.push(order.id)
 
-            // Send order confirmation email to customer (no-op if email service not configured)
+            // Send order confirmation email to customer and admin
             try {
-                if (isGuest) {
-                    // Send guest order email with account creation link
-                    const guestUser = await prisma.guestUser.findUnique({
-                        where: { email: guestInfo.email }
-                    });
+                const customerEmail = isGuest ? guestInfo.email : order.user?.email;
+                const customerName = isGuest ? guestInfo.name : order.user?.name;
+                const adminEmails = process.env.ADMIN_EMAIL || '';
 
-                    const emailResponse = await fetch(`${request.headers.get('origin')}/api/notifications/guest-order`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            orderId: order.id,
-                            email: guestInfo.email,
-                            customerName: guestInfo.name,
-                            orderItems: order.orderItems,
-                            total: order.total,
-                            convertToken: guestUser?.convertToken
-                        })
-                    });
-                    
-                    if (!emailResponse.ok) {
-                        console.error('Failed to send guest order email');
-                    }
-                } else {
-                    // Send regular order confirmation email
-                    const emailResponse = await fetch(`${request.headers.get('origin')}/api/notifications/order-status`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            orderId: order.id,
-                            email: order.user.email,
-                            customerName: order.user.name,
-                            status: 'ORDER_PLACED',
-                            orderItems: order.orderItems
-                        })
-                    });
-                    
-                    if (!emailResponse.ok) {
-                        console.error('Failed to send order confirmation email');
-                    }
-                }
+                await sendOrderEmails(order, customerEmail, customerName, adminEmails);
             } catch (emailError) {
-                console.error('Error sending order confirmation email:', emailError);
+                console.error('Error sending order emails:', emailError);
                 // Don't fail the order if email fails
             }
          }
