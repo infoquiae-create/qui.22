@@ -161,8 +161,10 @@ export async function POST(request) {
         
         let errorMessage = error.message;
         if (error.code === 'P2022') {
-            errorMessage = 'Invalid field value. Ensure all required fields are properly formatted';\n        } else if (error.code === 'P2002') {
-            errorMessage = 'Slug already exists';\n        }
+            errorMessage = 'Invalid field value. Ensure all required fields are properly formatted';
+        } else if (error.code === 'P2002') {
+            errorMessage = 'Slug already exists';
+        }
         
         return NextResponse.json({ error: errorMessage }, { status: 400 })
     }

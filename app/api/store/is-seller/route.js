@@ -22,7 +22,8 @@ export async function GET(request) {
         
         let errorMessage = error.message;
         if (error.code === 'P2022') {
-            errorMessage = 'Invalid user data';\n        }
+            errorMessage = 'Invalid user data';
+        }
         
         return NextResponse.json({ error: errorMessage }, { status: 400 })
     }
