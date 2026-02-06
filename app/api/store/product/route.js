@@ -88,6 +88,15 @@ export async function POST(request) {
                 if (!Array.isArray(variants) || variants.length === 0) {
                     return NextResponse.json({ error: "Variants must be a non-empty array when hasVariants is true" }, { status: 400 })
                 }
+                // Validate each variant
+                for (const v of variants) {
+                    if (!v.price || !Number.isFinite(Number(v.price))) {
+                        return NextResponse.json({ error: "Each variant must have a valid price number" }, { status: 400 })
+                    }
+                    if (Number(v.price) < 0) {
+                        return NextResponse.json({ error: "Variant prices cannot be negative" }, { status: 400 })
+                    }
+                }
             } catch (e) {
                 return NextResponse.json({ error: "Invalid variants JSON" }, { status: 400 })
             }
@@ -102,7 +111,10 @@ export async function POST(request) {
         } else {
             // No variants: require price and mrp
             if (!Number.isFinite(price) || !Number.isFinite(mrp)) {
-                return NextResponse.json({ error: "Price and MRP are required when no variants provided" }, { status: 400 })
+                return NextResponse.json({ error: "Price and MRP must be valid numbers when no variants provided" }, { status: 400 })
+            }
+            if (price < 0 || mrp < 0) {
+                return NextResponse.json({ error: "Price and MRP cannot be negative" }, { status: 400 })
             }
             inStock = true
         }
@@ -145,8 +157,14 @@ export async function POST(request) {
 
         return NextResponse.json({ message: "Product added successfully", product })
     } catch (error) {
-        console.error(error)
-        return NextResponse.json({ error: error.code || error.message }, { status: 400 })
+        console.error('Product creation error:', error);
+        
+        let errorMessage = error.message;
+        if (error.code === 'P2022') {
+            errorMessage = 'Invalid field value. Ensure all required fields are properly formatted';\n        } else if (error.code === 'P2002') {
+            errorMessage = 'Slug already exists';\n        }
+        
+        return NextResponse.json({ error: errorMessage }, { status: 400 })
     }
 }
 
